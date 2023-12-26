@@ -48,32 +48,8 @@ export class SearchService {
       temperature: 0.7,
       top_p: 1,
     });
-    const topics = topicResult.choices[0].message.content;
 
-    const sortedTopicResult = await openai.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: `Guess the relationship with the stock price, assign a score out of 100, and sort by score. Returns results in json format.
-            '''json
-            [{
-              id: number,
-              title:"",
-              topic:"",
-              score:number,
-            }]
-            '''
-            `,
-        },
-        { role: 'user', content: topics },
-      ],
-      model: 'gpt-3.5-turbo',
-      max_tokens: 1500,
-      temperature: 0.7,
-      top_p: 1,
-    });
-    console.log(sortedTopicResult.choices[0].message.content);
-    const sortedTopics = sortedTopicResult.choices[0].message.content;
+    console.log(topicResult.choices[0].message.content);
 
     const summaryResult = await openai.chat.completions.create({
       messages: [
@@ -93,7 +69,7 @@ export class SearchService {
           }]
           '''`,
         },
-        { role: 'user', content: sortedTopics },
+        { role: 'user', content: topicResult.choices[0].message.content },
       ],
       model: 'gpt-3.5-turbo',
       max_tokens: 1500,
@@ -102,7 +78,43 @@ export class SearchService {
     });
 
     console.log(summaryResult.choices[0].message.content);
-    return summaryResult.choices[0].message.content;
+
+    const scoredTopicResponse = await openai.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: `It thinks about whether the summary is likely to affect the stock price, scores it with a rationale for thinking so, and returns the result in JSON format. 
+          The more likely it is to affect the stock price, the higher the score, which ranges from 0 to 100.
+          
+           '''json
+                     [{
+                       articleIds: number[],
+                       reason:reason,
+                       score: number(0 - 100)
+                    }]
+          '''`,
+        },
+        { role: 'user', content: summaryResult.choices[0].message.content },
+      ],
+      model: 'gpt-3.5-turbo',
+      max_tokens: 1500,
+      temperature: 0.7,
+      top_p: 1,
+    });
+
+    const sortedTopics = JSON.parse(
+      scoredTopicResponse.choices[0].message.content,
+    ).sort((a, b) => {
+      if (Math.abs(a.score) > Math.abs(b.score)) {
+        return -1;
+      }
+      if (Math.abs(a.score) < Math.abs(b.score)) {
+        return 1;
+      }
+      return 0;
+    });
+    console.log(sortedTopics.choices[0].message.content);
+    return sortedTopics.choices[0].message.content;
   }
 }
 
