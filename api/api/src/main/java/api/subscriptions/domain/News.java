@@ -1,6 +1,7 @@
 package api.subscriptions.domain;
 
 import api.commons.domain.BaseEntity;
+import api.subscriptions.domain.Stock.StockDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,10 +20,16 @@ public class News extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   Long id;
   LocalDate date;
-  String title;
   String summary;
-  String linkUrl;
   @ManyToOne
-  @JoinColumn(name = "subscription_stock_id")
+  @JoinColumn(name = "stock_id")
   Stock stock;
+
+  public NewsDto toNewsDto() {
+    return new NewsDto(stock.toStockDto(), summary);
+  }
+
+  public static record NewsDto(StockDto stock, String summary) {
+
+  }
 }

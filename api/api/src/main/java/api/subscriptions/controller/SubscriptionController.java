@@ -25,7 +25,7 @@ public class SubscriptionController {
   @PostMapping("/register")
   public void register(@RequestParam String email, @RequestBody @Valid RegisterSubscription registerSubscription) {
 
-    subscriptionService.register(email, registerSubscription.webhookUrl(), registerSubscription.pushAt());
+    subscriptionService.register(email, registerSubscription.pushAt());
   }
 
   @PostMapping

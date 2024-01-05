@@ -27,4 +27,29 @@ public class Stock extends BaseEntity {
   public SubscribingStock toSubscribingStock() {
     return new SubscribingStock(name, ticker);
   }
+
+  public StockDto toStockDto() {
+    return new StockDto(id, name, ticker);
+  }
+
+  public static record StockDto(Long id, String name, String ticker) {
+
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Stock stock)) {
+      return false;
+    }
+
+    return id.equals(stock.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return id.hashCode();
+  }
 }

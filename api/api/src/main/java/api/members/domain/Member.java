@@ -2,6 +2,7 @@ package api.members.domain;
 
 
 import api.commons.domain.BaseEntity;
+import api.members.dto.response.MemberDto;
 import api.subscriptions.domain.Stock;
 import api.subscriptions.domain.Subscription;
 import jakarta.persistence.CascadeType;
@@ -15,6 +16,7 @@ import jakarta.persistence.OneToOne;
 import java.sql.Time;
 import java.util.List;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -24,13 +26,13 @@ public class Member extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  private String email;
+  private String userId;
   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @JoinColumn(name = "subscription_id")
   private Subscription subscription;
 
-  public void registerSubscription(String webhookUrl, Time pushAt) {
-    subscription = Subscription.createForInit(webhookUrl, pushAt);
+  public void registerSubscription(Time pushAt) {
+    subscription = Subscription.createForInit(pushAt);
   }
 
   public void subscribeStock(Stock stock) {
@@ -40,5 +42,14 @@ public class Member extends BaseEntity {
 
   public List<Stock> getSubscribingStocks() {
     return subscription.getSubscribingStocks();
+  }
+
+  public MemberDto toMemberDto() {
+    return new MemberDto(id, userId);
+  }
+
+  @Builder
+  public Member(String userId) {
+    this.userId = userId;
   }
 }
